@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pamestas kvitų detektyvas</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;transition:background .3s}
+header{padding:32px 24px;color:#fff;transition:background .3s}
+.head-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.head-nr{font-size:11px;text-transform:uppercase;letter-spacing:2px;opacity:.8}
+h1{font-family:Georgia,serif;font-size:28px;margin-top:4px}
+.head-meta{font-size:14px;opacity:.9}
+main{max-width:1100px;margin:0 auto;padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:24px}
+.card{border-radius:8px;border:1px solid;padding:24px}
+.card h2{font-family:Georgia,serif;font-size:18px;margin-bottom:12px}
+.fakt{display:flex;gap:8px;font-size:14px;margin:6px 0;align-items:flex-start}
+.fakt span:first-child{font-weight:bold;margin-top:2px}
+.kvitas{font-family:'Courier New',monospace;border:2px solid;border-radius:8px;padding:24px}
+.kvitas-h{text-align:center;font-weight:bold;font-size:18px;margin-bottom:4px}
+.kvitas-sub{text-align:center;font-size:12px;opacity:.6;margin-bottom:12px}
+.kvitas hr{border:none;border-top:1px dashed;opacity:.4;margin:12px 0}
+.kvitas .row{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
+.kvitas .row .nm{font-weight:bold;width:120px;flex-shrink:0}
+.kvitas .row .info{opacity:.7;flex:1;font-size:12px}
+.kvitas .row .price{font-weight:bold}
+.kvitas .total{display:flex;justify-content:space-between;font-family:Georgia,serif;font-size:16px;font-weight:bold}
+.row-l{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.row-l .nm{font-weight:bold;width:90px}
+.row-l .desc{flex:1;font-size:14px}
+.row-l .val{font-family:monospace;font-weight:bold}
+.divider{height:1px;margin:12px 0}
+.q-card{border-radius:8px;padding:24px;color:#fff;transition:background .3s}
+.q-badge{font-size:11px;font-weight:bold;text-transform:uppercase;opacity:.8}
+.q-text{font-family:Georgia,serif;font-size:18px;font-weight:bold;margin:8px 0 16px;white-space:pre-line;line-height:1.4}
+.q-label{font-size:13px;opacity:.9;display:block;margin-bottom:4px}
+.q-row{display:flex;gap:8px}
+.q-row input{flex:1;padding:12px;border-radius:4px;font-family:monospace;font-size:18px;font-weight:bold;border:3px solid;outline:none}
+.btn{padding:12px 20px;border-radius:4px;font-weight:bold;color:#fff;border:none;cursor:pointer;font-size:14px;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.6;cursor:default}
+.fb{margin-top:12px;font-size:14px;font-weight:600}
+.hint-list{margin-bottom:16px;display:flex;flex-direction:column;gap:12px}
+.hint-list .item{font-size:14px;line-height:1.5}
+.hint-empty{font-style:italic;font-size:14px}
+.finale{display:flex;align-items:center;justify-content:center;min-height:70vh;padding:32px}
+.finale-card{border:2px solid;border-radius:12px;padding:48px;text-align:center;max-width:520px;width:100%}
+.finale-card .em{font-size:80px;margin-bottom:16px}
+.finale-card h2{font-family:Georgia,serif;font-size:32px;margin-bottom:24px}
+.finale-time{display:inline-block;border:1px solid;padding:20px 40px;border-radius:8px;margin-bottom:24px}
+.finale-time .lbl{font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
+.finale-time .val{font-family:Georgia,serif;font-size:36px;font-weight:bold;margin-top:4px}
+svg{width:100%;height:auto;display:block;margin:8px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const KAMBARIAI = [{"nr":1,"tipas":"kvitas","pavadinimas":"Pamestas kvitų detektyvas","tema":"Procentai ir lygtys","klase":"5–6 klasės","kvitoAntrastes":["PIRKINIŲ KVITAS","Mokyklinių prekių parduotuvė"],"kvitoEilutes":[["Kuprinė","(1 vnt.)","35,00 €",false],["Užrašų knygelė","(2 vnt., kaina ?)","???",true],["Penalas","(akcija — be nuolaidos)","4,00 €",false]],"nuolaida":"−20%","viso":"44,00 €","faktai":["Pirkėjas kasoje sumokėjo 44 €.","Visam krepšeliui pritaikyta 20% nuolaida.","Kuprinė kainavo 35 € (prieš nuolaidą).","Krepšelyje yra 2 vienodos užrašų knygelės.","Penalas — 4 € (akcijos kaina, nuolaida netaikoma)."],"klausimas":"Kokia buvo VIENOS užrašų knygelės pradinė kaina prieš nuolaidą?","uzuominos":["1. Pirma atimk penalo kainą (4 €) iš galutinės sumos. Kam buvo taikoma 20% nuolaida?","2. Dabar turi sumą SU nuolaida (40 €). Atstatyk pradinę sumą: dalink iš 0,8 (nes 40 € = 80% pradinės sumos).","3. Atimk kuprinę (35 €), likusią sumą padalink iš 2 — gausi vienos knygelės kainą!"],"atsakymas":7.5,"vienetai":"€","kambarioKodas":"75"},{"nr":2,"tipas":"baterija","pavadinimas":"Baterijos detektyvas","tema":"Trupmenos, procentai ir laikas","klase":"5–6 klasės","baterijosZurnalas":[["08:00","Pradžia — pilna įkrova","100%","neutral"],["12:00","Intensyvus režimas (−2/5)","−40%","minus"],["15:00","Taupymo režimas (−15%)","−15%","minus"],["15:00","Likutis prieš krovimą","45%","neutral"],["15:30","Krovimas 30 min · +0,5%/min","+ ???","plius"]],"baterijosKlausimas":"Kiek % baterijos rodys laikrodis 15:30?","faktai":["8:00 ryto laikrodis buvo įkrautas 100%.","Nuo 8:00 iki 12:00 išnaudojo 2/5 visos įkrovos.","Nuo 12:00 iki 15:00 išnaudojo dar 15% (nuo pilnos įkrovos).","15:00 mokinys padėjo krauti 30-čiai minučių.","Per kiekvieną krovimo minutę baterija pasipildo 0,5%."],"klausimas":"Kiek procentų baterijos rodys laikrodis 15:30 valandą?","uzuominos":["1. Trupmenos: 2/5 nuo 100% = 40%. Likutis po 12:00: 100 − 40 = 60%.","2. Procentai: atimk dar 15%. Likutis 15:00 valandą: 60 − 15 = 45%.","3. Krovimas: 30 min × 0,5% = 15%. Galutinis rezultatas: 45 + 15 = ?"],"atsakymas":60,"vienetai":"%","kambarioKodas":"60"},{"nr":3,"tipas":"sklypas","pavadinimas":"Architekto galvosūkis","tema":"Plotas, perimetras ir proporcijos","klase":"5–6 klasės","sklypoDuomenys":{"santykis":"3 : 2","plotis":"8 m","ilgis":"? m","baseinoPerimetras":"8 m","gelynoPlotis":"0,5 m"},"faktai":["Sklypas — stačiakampis, ilgio ir pločio santykis 3 : 2.","Trumpoji kraštinė (plotis) yra 8 m.","Sklypo viduryje — kvadratinis baseinas.","Baseino perimetras lygus sklypo pločiui (8 m).","Aplink visą sklypą (iš vidaus) eina 0,5 m pločio gėlynas."],"klausimas":"Koks plotas sklype lieka VEJAI (atėmus baseiną ir gėlyną)?","uzuominos":["1. Santykis 3:2, plotis 8 m → viena dalis = 4 m. Ilgis = 3·4 = 12 m. Visas plotas: 12·8 = 96 m².","2. Baseinas: perimetras 8 m → kraštinė 8:4 = 2 m. Baseino plotas: 2·2 = 4 m².","3. Gėlynas „suvalgo\" po 0,5 m iš kiekvienos pusės: nauji matmenys 11 × 7 = 77 m². Atimk baseiną: 77 − 4 = ?"],"atsakymas":73,"vienetai":"m²","kambarioKodas":"73"},{"nr":4,"tipas":"bokstas","pavadinimas":"Vandens bokšto talpa","tema":"Trupmenos, procentai ir tūris","klase":"5–6 klasės","bokstasEtapai":[["Pradžia","Bakas užpildytas 3/4 tūrio","450 l",0.75,"info"],["Naktis","Sunaudota 20% nuo 450 l (−90 l)","360 l",0.6,"minus"],["Rytas","Įpilta dar 100 l","460 l",0.77,"plius"],["Pilnas bakas","Visa talpa (3/4 = 450 → 1/4 = 150)","600 l",1,"tikslas"]],"bokstasKlausimas":"Kiek litrų trūksta iki pilno bako?","faktai":["Bakas — stačiakampio gretasienio formos.","Užpildytas 3/4 tūrio jame yra 450 l vandens.","Per naktį gyventojai sunaudojo 20% viso bake buvusio vandens.","Ryte į baką įpilta dar 100 l.","Reikia rasti, kiek litrų trūksta iki pilno bako."],"klausimas":"Kiek litrų vandens DABAR TRŪKSTA, kad bakas būtų visiškai pilnas?","uzuominos":["1. Pilnas tūris: jei 3/4 = 450 l, tai 1/4 = 150 l. Pilnas bakas: 150·4 = 600 l.","2. Po nakties: 20% nuo 450 = 90 l. Liko 450 − 90 = 360 l.","3. Ryte: 360 + 100 = 460 l. Trūksta: 600 − 460 = ?"],"atsakymas":140,"vienetai":"l","kambarioKodas":"140"},{"nr":5,"tipas":"laboratorija","pavadinimas":"Laboratorijos saugykla","tema":"Trupmenos, dalyba ir geometrija","klase":"5–6 klasės","labBlokai":[{"etikete":"A · MĖGINTUVĖLIAI","antraste":"Saugyklos inventorius","eilutes":[["Pradžioje saugykloje","120 vnt.","neutral"],["Išsiųsta tyrimams (1/4)","−30 vnt.","minus"],["Netyčia sudaužyta","−10 vnt.","minus"],["Liko sveikų","??? vnt.","tikslas"]],"klausimas":"Skaitmenų suma = kodo dalis A"},{"etikete":"B · KROVINYS","antraste":"Laboratorijos kiemas","eilutes":[["Pradinis krovinys","120 kg","neutral"],["Palengvinta","−45 kg","minus"],["Likęs svoris","75 kg","neutral"],["Padalinta į 5 vežimėlius","??? kg","tikslas"]],"klausimas":"Vieno vežimėlio svoris = kodo dalis B"},{"etikete":"C · SALĖ","antraste":"Laboratorijos salė","eilutes":[["Plotas","48 m²","neutral"],["Viena kraštinė","6 m","neutral"],["Kita kraštinė","48 : 6 m","neutral"],["Perimetras","??? m","tikslas"]],"klausimas":"Perimetro skaičius = kodo dalis C"}],"faktai":["Tomas saugykloje turėjo 120 mėgintuvėlių.","Ketvirtadalį (1/4) jų išsiuntė tyrimams.","Dar 10 mėgintuvėlių netyčia sudaužė.","Kieme buvo 120 kg krovinys; darbuotojai jį palengvino 45 kg.","Likusį svorį po lygiai išskirstė į 5 vežimėlius.","Salės plotas — 48 m², viena kraštinė — 6 m.","Surask sveikų mėgintuvėlių skaitmenų sumą (A), vieno vežimėlio svorį (B) ir salės perimetrą (C)."],"klausimas":"Sujunk A, B ir C į vieną eilutę. Koks galutinis SLAPTAS KODAS?","uzuominos":["1. A: 1/4 nuo 120 = 30. Liko 120 − 30 − 10 = 80. Skaitmenų suma: 8 + 0 = 8.  →  A = 8","2. B: 120 − 45 = 75 kg. 75 : 5 = 15 kg.  →  B = 15","3. C: kita kraštinė 48 : 6 = 8 m. Perimetras = 2·(6 + 8) = 28 m.  →  C = 28","4. Sujungk: A + B + C = „8\" + „15\" + „28\" = ?"],"atsakymas":81528,"vienetai":"","kambarioKodas":"81528"},{"nr":6,"tipas":"finalas","pavadinimas":"Pabėgimas pavyko"}];
+const THEMES = {"kvitas":{"bg":"#F5EFE0","head":"#3E5C76","card":"#FFFFFF","panel":"#EFE3C8","acc":"#D97742","accH":"#B85F30","txt":"#2C3E50","pilka":"#7A8896","klaus":"#3E5C76","hint":"#D9A441","border":"#C9B58A"},"baterija":{"bg":"#EAF4F0","head":"#2F6F5E","card":"#FFFFFF","panel":"#F1F8F4","acc":"#3FA796","accH":"#2C8474","txt":"#1F3A34","pilka":"#6F857F","klaus":"#2F6F5E","hint":"#7BC4A4","border":"#BFE0D2"},"sklypas":{"bg":"#F2EDE3","head":"#6B4F3A","card":"#FFFFFF","panel":"#E8DFC8","acc":"#8C5E2A","accH":"#6E481E","txt":"#3A2E22","pilka":"#8A7A66","klaus":"#6B4F3A","hint":"#C9A66B","border":"#C9B58A"},"bokstas":{"bg":"#E6F2F8","head":"#1E4E6B","card":"#FFFFFF","panel":"#F0F8FB","acc":"#2E86AB","accH":"#1F6385","txt":"#13314A","pilka":"#6F8499","klaus":"#1E4E6B","hint":"#7FB8D6","border":"#BBD7E5"},"laboratorija":{"bg":"#EEE8F4","head":"#5B3E76","card":"#FFFFFF","panel":"#F5EFFA","acc":"#7E57C2","accH":"#5E35B1","txt":"#2C1F3E","pilka":"#7A6F89","klaus":"#5B3E76","hint":"#B39DDB","border":"#D6C7E8"}};
+const PLIUS_Z='#2E8B57',MINUS_R='#C95E5E',GERAI='#5CA371';
+
+const state={idx:0,stage:'uzd',input:'',feedback:null,shownHints:0,cooldown:0,start:Date.now()};
+let cooldownTimer=null;
+
+function unitWord(u){return ({'€':'eurais','%':'procentais','m²':'kvadratiniais metrais','l':'litrais'})[u]||u;}
+function tema(r){return r.tipas==='finalas'?THEMES.kvitas:THEMES[r.tipas];}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);}
+
+function tikrinti(){
+  const r=KAMBARIAI[state.idx];const v=state.input.trim();
+  if(state.stage==='uzd'){
+    const n=parseFloat(v.replace(',','.'));
+    if(isNaN(n)){state.feedback={msg:'Įvesk skaičių.'};render();return;}
+    if(Math.abs(n-r.atsakymas)<0.01){
+      state.stage='kod';state.input='';
+      state.feedback={msg:'Kodas — tavo atsakymo skaitmenys be kablelio.',ok:true};
+    }else state.feedback={msg:'Neteisingai. Pabandyk dar kartą.'};
+  }else{
+    if(v===r.kambarioKodas){
+      state.idx++;state.stage='uzd';state.input='';state.feedback=null;state.shownHints=0;state.cooldown=0;
+      if(cooldownTimer){clearInterval(cooldownTimer);cooldownTimer=null;}
+    }else state.feedback={msg:'Neteisingas kodas. Tai tavo atsakymo skaitmenys.'};
+  }
+  render();
+}
+function showHint(){
+  const r=KAMBARIAI[state.idx];
+  if(state.cooldown>0||state.shownHints>=r.uzuominos.length)return;
+  state.shownHints++;
+  if(state.shownHints<r.uzuominos.length){
+    state.cooldown=90;
+    if(cooldownTimer)clearInterval(cooldownTimer);
+    cooldownTimer=setInterval(()=>{state.cooldown--;if(state.cooldown<=0){clearInterval(cooldownTimer);cooldownTimer=null;}render();},1000);
+  }
+  render();
+}
+
+function viewKvitas(r,t){
+  const rows=r.kvitoEilutes.map(([n,i,k,m])=>'<div class="row"><span class="nm">'+esc(n)+'</span><span class="info">'+esc(i)+'</span><span class="price" style="color:'+(m?t.acc:t.txt)+'">'+esc(k)+'</span></div>').join('');
+  return '<div class="kvitas" style="background:'+t.panel+';border-color:'+t.border+';color:'+t.txt+'"><div class="kvitas-h">'+esc(r.kvitoAntrastes[0])+'</div><div class="kvitas-sub">'+esc(r.kvitoAntrastes[1])+'</div><hr style="border-color:'+t.txt+'">'+rows+'<hr style="border-color:'+t.txt+'"><div class="row"><span>Bendra nuolaida:</span><span style="color:'+t.acc+';font-weight:bold">'+esc(r.nuolaida)+'</span></div><hr style="border-color:'+t.txt+';opacity:.8;border-top-style:solid;border-top-width:2px"><div class="total"><span>VISO SUMOKĖTA:</span><span style="color:'+t.head+'">'+esc(r.viso)+'</span></div></div>';
+}
+function viewBaterija(r,t){
+  const rows=r.baterijosZurnalas.map(([l,a,v,tp])=>{const c=tp==='plius'?PLIUS_Z:tp==='minus'?MINUS_R:t.txt;return '<div class="row-l"><span class="nm" style="color:'+t.acc+';font-family:monospace">'+esc(l)+'</span><span class="desc" style="color:'+t.txt+'">'+esc(a)+'</span><span class="val" style="color:'+c+'">'+esc(v)+'</span></div>';}).join('');
+  return '<div class="card" style="background:'+t.panel+';border-color:'+t.border+'"><h2 style="color:'+t.txt+'">🔋 Baterija</h2>'+rows+'<div class="divider" style="background:'+t.border+'"></div><div style="font-weight:600;color:'+t.txt+'">'+esc(r.baterijosKlausimas)+'</div></div>';
+}
+function viewSklypas(r,t){
+  const d=r.sklypoDuomenys;
+  const rows=[['Ilgio : pločio santykis',d.santykis],['Plotis (trumpoji kraštinė)',d.plotis],['Ilgis (skaičiuok!)',d.ilgis],['Baseino perimetras',d.baseinoPerimetras],['Gėlyno plotis (iš vidaus)',d.gelynoPlotis]].map(([k,v])=>'<div class="row-l"><span style="color:'+t.txt+';font-size:14px">• '+esc(k)+'</span><span style="color:'+t.acc+';font-family:monospace;font-weight:bold">'+esc(v)+'</span></div>').join('');
+  return '<div class="card" style="background:'+t.panel+';border-color:'+t.border+'"><h2 style="color:'+t.txt+'">🏡 Sklypas</h2><svg viewBox="0 0 380 230"><rect x="20" y="20" width="340" height="190" fill="#EAB1C6" stroke="'+t.txt+'" stroke-width="2"/><rect x="42" y="42" width="296" height="146" fill="#A7CC8A" stroke="'+t.txt+'"/><rect x="160" y="85" width="60" height="60" fill="#7FC8E0" stroke="'+t.txt+'" stroke-width="2"/><text x="190" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="'+t.txt+'">ilgis = '+esc(d.ilgis)+'</text><text x="12" y="120" font-size="11" font-weight="bold" fill="'+t.txt+'" transform="rotate(-90 12 120)">'+esc(d.plotis)+'</text></svg><div class="divider" style="background:'+t.border+'"></div>'+rows+'</div>';
+}
+function viewBokstas(r,t){
+  const labels=['Pradžia','Naktis','Rytas','Pilnas'];
+  const ratios=[0.75,0.6,0.77,1];
+  const litrai=['450 l','360 l','460 l','600 l'];
+  const bw=60,bh=140,gap=(380-4*bw)/5;
+  const bars=ratios.map((rr,n)=>{const x=gap+n*(bw+gap),y2=25+bh,wh=bh*rr;return '<rect x="'+x+'" y="25" width="'+bw+'" height="'+bh+'" fill="#fff" stroke="'+t.txt+'" stroke-width="2"/><rect x="'+(x+2)+'" y="'+(y2-wh)+'" width="'+(bw-4)+'" height="'+(wh-2)+'" fill="#4FB3D9"/><rect x="'+(x+2)+'" y="'+(y2-wh)+'" width="'+(bw-4)+'" height="4" fill="#2E86AB"/><text x="'+(x+bw/2)+'" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="'+t.txt+'">'+labels[n]+'</text><text x="'+(x+bw/2)+'" y="'+(y2+14)+'" text-anchor="middle" font-size="11" font-weight="bold" fill="'+t.acc+'" font-family="monospace">'+litrai[n]+'</text>';}).join('');
+  const rows=r.bokstasEtapai.map(([p,a,k,_,tp])=>{const c=tp==='plius'?PLIUS_Z:tp==='minus'?MINUS_R:t.txt;return '<div class="row-l"><span class="nm" style="color:'+t.acc+'">'+esc(p)+'</span><span class="desc" style="color:'+t.txt+'">'+esc(a)+'</span><span class="val" style="color:'+c+'">'+esc(k)+'</span></div>';}).join('');
+  return '<div class="card" style="background:'+t.panel+';border-color:'+t.border+'"><h2 style="color:'+t.txt+'">💧 Vandens bokštas</h2><svg viewBox="0 0 380 200">'+bars+'</svg><div class="divider" style="background:'+t.border+'"></div>'+rows+'<div class="divider" style="background:'+t.border+'"></div><div style="font-weight:600;color:'+t.txt+'">'+esc(r.bokstasKlausimas)+'</div></div>';
+}
+function viewLab(r,t){
+  let svg='';
+  for(let n=0;n<3;n++){const x=50+n*22;svg+='<rect x="'+x+'" y="25" width="14" height="70" fill="#fff" stroke="'+t.txt+'" stroke-width="2"/><ellipse cx="'+(x+7)+'" cy="97" rx="8" ry="5" fill="#C7E5F0" stroke="'+t.txt+'" stroke-width="2"/><rect x="'+(x+2)+'" y="70" width="10" height="24" fill="#9C6FD6"/>';}
+  svg+='<text x="72" y="115" font-size="10" font-weight="bold" fill="'+t.txt+'" text-anchor="middle">A · mėgintuvėliai</text>';
+  svg+='<rect x="170" y="45" width="70" height="55" fill="#C9A57A" stroke="'+t.txt+'" stroke-width="2"/><line x1="170" y1="60" x2="240" y2="60" stroke="'+t.txt+'"/><line x1="205" y1="45" x2="205" y2="100" stroke="'+t.txt+'"/><text x="205" y="78" font-size="10" font-weight="bold" fill="'+t.txt+'" text-anchor="middle">120 kg</text><text x="205" y="115" font-size="10" font-weight="bold" fill="'+t.txt+'" text-anchor="middle">B · krovinys</text>';
+  svg+='<rect x="280" y="45" width="80" height="55" fill="#fff" stroke="'+t.txt+'" stroke-width="2"/><text x="320" y="76" font-size="11" font-weight="bold" fill="'+t.acc+'" text-anchor="middle">48 m²</text><text x="320" y="40" font-size="10" fill="'+t.txt+'" text-anchor="middle">? m</text><text x="270" y="76" font-size="10" fill="'+t.txt+'" text-anchor="end">6 m</text><text x="320" y="115" font-size="10" font-weight="bold" fill="'+t.txt+'" text-anchor="middle">C · salė</text>';
+  const blks=r.labBlokai.map(b=>{const rows=b.eilutes.map(([k,v,tp])=>{const c=tp==='minus'?MINUS_R:tp==='tikslas'?t.acc:t.txt;return '<div class="row-l"><span style="color:'+t.txt+';font-size:14px">• '+esc(k)+'</span><span style="color:'+c+';font-family:monospace;font-weight:bold">'+esc(v)+'</span></div>';}).join('');return '<div style="margin-top:12px;padding-top:12px;border-top:1px solid '+t.border+'"><div style="font-weight:bold;color:'+t.acc+';margin-bottom:4px">'+esc(b.etikete)+'</div>'+rows+'<div style="font-style:italic;font-size:12px;margin-top:4px;color:'+t.accH+'">→ '+esc(b.klausimas)+'</div></div>';}).join('');
+  return '<div class="card" style="background:'+t.panel+';border-color:'+t.border+'"><h2 style="color:'+t.txt+'">🧪 Laboratorija</h2><svg viewBox="0 0 380 130">'+svg+'</svg>'+blks+'</div>';
+}
+
+function render(){
+  const r=KAMBARIAI[state.idx];const t=tema(r);
+  document.body.style.background=t.bg;
+  const app=document.getElementById('app');
+  if(r.tipas==='finalas'){
+    const sec=Math.floor((Date.now()-state.start)/1000);
+    const m=Math.floor(sec/60),s=sec%60;
+    const laikas=m>0?(m+' min '+s+' s'):(s+' s');
+    app.innerHTML='<header style="background:'+t.head+';text-align:center"><h1 style="margin:0">'+esc(r.pavadinimas)+'</h1></header><div class="finale"><div class="finale-card" style="background:'+t.card+';border-color:'+t.acc+'"><div class="em">🏆</div><h2 style="color:'+t.txt+'">Pabėgai!</h2><div class="finale-time" style="background:'+t.panel+';border-color:'+t.border+'"><div class="lbl" style="color:'+t.pilka+'">Tavo laikas</div><div class="val" style="color:'+t.acc+'">'+laikas+'</div></div><p style="color:'+t.txt+'">Visi 5 kambariai įveikti.</p><button class="btn" style="background:'+t.acc+';margin-top:24px" onclick="state.idx=0;state.stage=\'uzd\';state.input=\'\';state.feedback=null;state.shownHints=0;state.cooldown=0;state.start=Date.now();render()">Žaisti dar kartą</button></div></div>';
+    return;
+  }
+  let leftView='';
+  if(r.tipas==='kvitas')leftView=viewKvitas(r,t);
+  else if(r.tipas==='baterija')leftView=viewBaterija(r,t);
+  else if(r.tipas==='sklypas')leftView=viewSklypas(r,t);
+  else if(r.tipas==='bokstas')leftView=viewBokstas(r,t);
+  else if(r.tipas==='laboratorija')leftView=viewLab(r,t);
+
+  const faktai='<div class="card" style="background:'+t.card+';border-color:'+t.border+'"><h2 style="color:'+t.txt+'">Duomenys</h2>'+r.faktai.map(f=>'<div class="fakt" style="color:'+t.txt+'"><span style="color:'+t.acc+'">▸</span><span>'+esc(f)+'</span></div>').join('')+'</div>';
+
+  const klausBg=state.stage==='kod'?GERAI:t.klaus;
+  const inputLabel=state.stage==='kod'?'Kambario kodas:':('Tavo atsakymas'+(r.vienetai?' ('+unitWord(r.vienetai)+')':'')+':');
+  const qText=state.stage==='kod'?('Teisingai! Atsakymas: '+r.atsakymas+' '+r.vienetai+'.\nĮvesk kambario kodą, kad eitum toliau:'):r.klausimas;
+  const fbHtml=state.feedback?'<div class="fb" style="color:'+(state.feedback.ok?'#E8F5E9':'#FFD9D6')+'">'+esc(state.feedback.msg)+'</div>':'';
+  const qCard='<div class="q-card" style="background:'+klausBg+'"><div class="q-badge">'+(state.stage==='kod'?'Išspręsta':'Klausimas')+'</div><div class="q-text">'+esc(qText)+'</div><label class="q-label">'+inputLabel+'</label><div class="q-row"><input id="ans" value="'+esc(state.input)+'" style="border-color:'+t.acc+';color:'+t.txt+'" autofocus><button class="btn" style="background:'+t.acc+'" onclick="tikrinti()">'+(state.stage==='kod'?'Toliau':'Tikrinti!')+'</button></div>'+fbHtml+'</div>';
+
+  const hintItems=r.uzuominos.slice(0,state.shownHints).map(u=>'<div class="item" style="color:'+t.txt+'">'+esc(u)+'</div>').join('');
+  const hintEmpty=state.shownHints===0?'<div class="hint-empty" style="color:'+t.pilka+'">Pabandyk pirma savarankiškai. Jei reikia — paspausk mygtuką.</div>':'';
+  const remaining=r.uzuominos.length-state.shownHints;
+  const allDone=state.shownHints>=r.uzuominos.length;
+  const cdM=Math.floor(state.cooldown/60),cdS=String(state.cooldown%60).padStart(2,'0');
+  const btnLabel=allDone?'Visos užuominos parodytos':state.cooldown>0?('Kita užuomina po '+cdM+':'+cdS+' (liko '+remaining+')'):state.shownHints===0?'Rodyti užuominą':'Rodyti kitą užuominą (liko '+remaining+')';
+  const btnDisabled=allDone||state.cooldown>0;
+  const btnBg=btnDisabled?t.pilka:t.acc;
+  const hintCard='<div class="card" style="background:'+t.card+';border:2px solid '+t.hint+';flex:1"><h2 style="color:'+t.txt+'">Užuominos</h2><div class="hint-list">'+hintItems+hintEmpty+'</div><button class="btn" style="background:'+btnBg+'" '+(btnDisabled?'disabled':'')+' onclick="showHint()">'+esc(btnLabel)+'</button></div>';
+
+  app.innerHTML='<header style="background:'+t.head+'"><div class="head-inner"><div><div class="head-nr">Kambarys '+r.nr+' / 5</div><h1>'+esc(r.pavadinimas)+'</h1></div><div class="head-meta"><span style="opacity:.75">'+esc(r.klase)+'</span> · '+esc(r.tema)+'</div></div></header><main><div class="col">'+leftView+faktai+'</div><div class="col">'+qCard+hintCard+'</div></main>';
+
+  const inp=document.getElementById('ans');
+  if(inp){
+    inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);
+    inp.addEventListener('input',e=>{state.input=e.target.value;});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')tikrinti();});
+  }
+}
+render();
+</script>
+</body>
+</html>
